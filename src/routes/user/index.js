@@ -91,6 +91,7 @@ router.post(SIGNIN_USER, validate(signinUser), async (req, res) => {
     return res.json({
       status: status,
       message: FAILED,
+      result: result,
     });
   }
 });
