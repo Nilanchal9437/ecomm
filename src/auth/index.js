@@ -18,21 +18,38 @@ const ensureAuthorisedAdmin = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!token || token === "null" || token === "undefined") {
+      return res.json({
+        status: false,
+        message: RESPONSE.USER_TOKEN_NOT_FOUND,
+      });
+    }
 
-    const { status, result } = await viewAsync(
-      { email: decoded.email, status: true },
-      COLLECTION.USER,
-    );
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
 
-    if (status && (result.user_type === "SA" || result.user_type === "A")) {
-      req.userId = result._id; // result._id is already an ObjectId from MongoDB
-      next();
-    } else {
-      res.json({ status: false, message: RESPONSE.ACCESS_DENIED });
+      const { status, result } = await viewAsync(
+        { email: decoded.email, status: true },
+        COLLECTION.USER,
+      );
+
+      if (status && (result.user_type === "SA" || result.user_type === "A")) {
+        req.userId = result._id; // result._id is already an ObjectId from MongoDB
+        next();
+      } else {
+        res.json({ status: false, message: RESPONSE.ACCESS_DENIED });
+      }
+    } catch (jwtError) {
+      console.error(
+        "JWT Verification Error:",
+        jwtError.message,
+        "Token:",
+        token.substring(0, 10) + "...",
+      );
+      return res.json({ status: false, message: RESPONSE.INVALID_USER });
     }
   } catch (error) {
-    console.log(error);
+    console.error("Internal Auth Error:", error);
     res.json({ status: false, message: RESPONSE.INVALID_USER });
   }
 };
