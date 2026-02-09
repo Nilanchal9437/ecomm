@@ -69,8 +69,6 @@ router.post(SIGNIN_USER, validate(signinUser), async (req, res) => {
 
   const { status, result } = await viewOne({ email: email }, USER);
 
-  console.log(status, result);
-
   if (status) {
     if (bcrypt.compareSync(password, result.password)) {
       return res.json({
@@ -93,7 +91,6 @@ router.post(SIGNIN_USER, validate(signinUser), async (req, res) => {
     return res.json({
       status: status,
       message: FAILED,
-      result: result,
     });
   }
 });
